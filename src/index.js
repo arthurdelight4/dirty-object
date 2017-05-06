@@ -49,7 +49,6 @@ const __generate__ = (clz, key, val) => {
 
 const observe_child = (obj = {}, root) => {
   if( !root ) root = obj;
-  console.log('getting keys', obj);
   const keys = Object.keys(obj);
   for( let key of keys ) {
     if( key === config.name ) continue;
