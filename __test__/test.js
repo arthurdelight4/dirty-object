@@ -1,10 +1,16 @@
 const { observe, configure } = require('../src/index');
 
+beforeAll(()=>{
+  configure({
+    setLogging: true
+  })
+});
+
 test('Testing -- basic object', () => {
   const data = {
     'name': 'bob'
   }
-  observe(data, { showDate: false });
+  observe(data);
   expect(data.name).toBe('bob');
   data.name = 'bill';
   expect(data.name).toBe('bill');
@@ -104,4 +110,39 @@ test('Testing -- functions, regex in object', () => {
   expect(data.dirty).toBe(false);
   data.test = /^false/;
   expect(data.dirty).toBe(true);
+});
+
+test('Testing -- watching nulls', () => {
+  const data = {
+    'name': null,
+    'faith': undefined
+  };
+  observe(data);
+  expect(data.name).toBe(null);
+  expect(data.faith).not.toBeDefined();
+  data.name = 'bill';
+  expect(data.name).toBe('bill');
+  expect(data.dirty).toBe(true);
+  expect(data).toMatchSnapshot();
+});
+
+test('Testing -- example', () => {
+  configure({
+    date: true,
+    name: '__modified__',  // defaults 'dirty'
+    setLogging: true
+  })
+  const data = {
+    firstName: 'Alex',
+    lastName: 'Bell',
+    address: {
+      city: 'Seattle'
+    }
+  };
+
+  observe(data);
+
+  data.address.city = 'Shoreline';
+
+  console.log(JSON.stringify(data, null, 2));
 });

@@ -44,3 +44,11 @@ Object {
   "zip": "98125",
 }
 `;
+
+exports[`Testing -- watching nulls 1`] = `
+Object {
+  "dirty": true,
+  "faith": undefined,
+  "name": "bill",
+}
+`;
