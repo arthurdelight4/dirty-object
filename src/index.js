@@ -1,4 +1,8 @@
+const { isValid, isObject, isCallable, smartString } = require('./helpers');
+
 /// configuration
+let config = Object.assign({}, defaultConfig);
+
 const defaultConfig = {
   date: false,
   name: 'dirty',
@@ -6,22 +10,8 @@ const defaultConfig = {
   getLogging: false
 }
 
-let config = Object.assign({}, defaultConfig);
-
 export const configure = (options = defaultConfig) => {
-  config = Object.assign({}, config, options);
-}
-
-const getLogging = (key) => {
-  if( config.getLogging ) {
-    console.log(`getting prop ${key}`)
-  }
-}
-
-const setLogging = (key, v) => {
-  if( config.setLogging ) {
-    console.log(`setting prop ${key} with ${v.constructor.name === 'Object' ? JSON.stringify(v) : v}`)
-  }
+  config = Object.assign({}, config, defaultConfig, options);
 }
 
 /// library
@@ -31,17 +21,21 @@ const __generate__ = (clz, key, val) => {
     __proto__: null,
     enumerable: true,
     get: function() {
-      getLogging(key);
+      if( config.getLogging ) {
+        console.log(`getting prop ${key}`)
+      }
       return _f;
     },
     set: function(v) {
       clz[config.name] = true;
 
-      if( config && config.hasOwnProperty('date') && config.date ) {
+      if( config.date ) {
         clz.last_modified = Date.now();
       }
 
-      setLogging(key, v);
+      if( config.setLogging ) {
+        console.log(`setting prop ${key} with ${smartString(v)}`)
+      }
       _f = v;
     }
   }
@@ -53,17 +47,19 @@ const observe_child = (obj = {}, root) => {
   for( let key of keys ) {
     if( key === config.name ) continue;
 
-    // copy current value -- delete from object for reassignment
+    // copy current value
     let seed = obj[key];
 
     // ignore functions
-    if( typeof(seed) === 'function' ) {
+    if( isCallable(seed) ) {
       continue;
     }
 
+    // delete existing value
     delete obj[key];
+
     Object.defineProperty(obj, key, __generate__(root, key, seed))
-    if( (seed !== null && seed !== undefined ) && typeof(seed) === 'object' ) {
+    if( isValid(seed) && isObject(seed) ) {
       observe_child(seed, root);
     }
   }
